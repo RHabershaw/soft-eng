@@ -18,12 +18,11 @@ def showMenu():
     print("*****Options*****")
     print("1. Vendor Entry")  #Done (Manual Entry)
     print("2. Product Entry") #Done (Manual Entry)
-    print("3. Order Entry") #NEEDS WORK (Generated)
-    print("4. Order Item Entry") #NEEDS WORK (Generated)
-    print("5. Customer Entry") #Done (Generated)
-    print("6. User Entry") #Done (Manual Entry)
+    print("3. Generate Orders") #NEEDS WORK (Generated)
+    print("4. Generate Customers") #Done (Generated)
+    print("5. User Entry") #Done (Manual Entry)
     print("0. Exit\n") #Done
-    print("7. Debug\n")
+    print("6. Debug\n")
 
 def evaluateChoice(choice):
     if choice == '1':
@@ -31,16 +30,14 @@ def evaluateChoice(choice):
     elif choice == '2':
         productEntry()
     elif choice == '3':
-        orderEntry()
+        generateOrders()
     elif choice == '4':
-        orderItemEntry()
-    elif choice == '5':
         customerEntry()
-    elif choice == '6':
+    elif choice == '5':
         userEntry()
     elif choice == '0':
         exitProgram()
-    elif choice == '7':
+    elif choice == '6':
         print("DEBUGGING!")
         customer = generateCustomer()
 
@@ -91,13 +88,15 @@ def vendorEntry():
         file.write("'" + vName.title() + "'),")
         print("")
 
-    file.seek(file.tell() - 1, os.SEEK_SET)
-    file.truncate()
-    file.write(';')
-    
-    file.write("\n\n")
 
-    file.close()
+    if firstRun:
+        file.seek(file.tell() - 1, os.SEEK_SET)
+        file.truncate()
+        file.write(';')
+    
+        file.write("\n\n")
+
+        file.close()
     
 def productEntry():
     print("\n******Product Entry******")
@@ -247,14 +246,14 @@ def productEntry():
                 colors = []
                 print("")
                 break;       
-                
-    file.seek(file.tell() - 1, os.SEEK_SET)
-    file.truncate()
-    file.write(';')
+    if firstRun:            
+        file.seek(file.tell() - 1, os.SEEK_SET)
+        file.truncate()
+        file.write(';')
     
-    file.write("\n\n")
+        file.write("\n\n")
     
-    file.close()
+        file.close()
 
 def generateOrders():
 
@@ -560,13 +559,14 @@ def userEntry():
         file.write("'" + security.title() + "'),")
         print("")
 
-    file.seek(file.tell() - 1, os.SEEK_SET)
-    file.truncate()
-    file.write(';')
+    if firstRun:
+        file.seek(file.tell() - 1, os.SEEK_SET)
+        file.truncate()
+        file.write(';')
     
-    file.write("\n\n")
+        file.write("\n\n")
     
-    file.close()
+        file.close()
 
 def printOptions(attribute):
     print("\nType menu in " + attribute + " to access the menu")
