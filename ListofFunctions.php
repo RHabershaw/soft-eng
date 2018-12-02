@@ -139,7 +139,7 @@ $Security = $_SESSION['secLevel'];
 		echo "</form>";	
 	}
 	elseif($Security == 'Salesperson'){
-		echo "<form action='OrderEntry.php.php' method='get'>";
+		echo "<form action='OrderEntry.php' method='get'>";
 		echo "<li><button class='button greenbutton'>Order Entry</button></li>";
 		echo "</form>";
 		echo "<form action='ProductSearch.php' method='get'>";

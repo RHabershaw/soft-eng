@@ -139,6 +139,7 @@
 	session_start(); 
 
 	$mySec = $_SESSION['secLevel'];
+	$myID = $_SESSION['myID'];
 	
 	if($mySec == 'Administrator' || $mySec == 'Owner'){
 		echo "<a class='active' href='OrderEntry.php'>Order Entry</a>";
@@ -176,6 +177,13 @@ $db = mysqli_connect('localhost', 'root', '', 'wims')or die('Error connecting to
 					$_SESSION['haveProd'] = 0;
 					$_SESSION['editSubmit'] = 0;
 					$_SESSION['showButtons'] = 0;
+					
+					$getsales = "SELECT Username FROM users WHERE UserID = '$myID'";
+					mysqli_query($db,$getsales) or die('Error querying database.');
+					$result = mysqli_query($db, $getsales);
+					$row = mysqli_fetch_array($result);
+					
+					$_SESSION['salesperson'] = $row['Username'];
 				}
 				else{
 					$_SESSION['showButtons'] = 1;
@@ -194,7 +202,7 @@ $Amount = '';
 
 //ORDER INFORMATION
 $OrdNum = '';
-$Salesperson = 'JUSTIN';
+$Salesperson = '';
 $CustID = '';
 $OrdType = '';
 $Product = '';
@@ -243,10 +251,22 @@ if(!isset($_SESSION['Quantity']))
     $_SESSION['Quantity'] = '';
 }
 
+if(!isset($_SESSION['GoodQty']))
+{
+    $_SESSION['GoodQty'] = 0;
+}
+
 if(!isset($_SESSION['showButtons']))
 {
     $_SESSION['showButtons'] = 0;
 }
+
+if(!isset($_SESSION['salesperson']))
+{
+    $_SESSION['salesperson'] = '';
+}
+
+
 				function updateTable($qry, $active=0){
 					mysqli_query($GLOBALS['db'], $qry) or die('Error querying database.');
 
@@ -449,7 +469,7 @@ if(isset($_POST['submit'])){
 	//IF ORDER NUM NOT SET
 	if((!isset($OrdNum) || trim($OrdNum) == '')){
 		
-		$Salesperson = 'JUSTIN';
+		$Salesperson = $_SESSION['salesperson'];
 		
 		//CHECK IF ORDER TYPE IS EMPTY
 		$_SESSION['OrderType'] = $_POST['otype'];
@@ -496,7 +516,7 @@ if(isset($_POST['submit'])){
 		
 		$_SESSION['OrderNum'] = $_POST['onumber'];
 		$OrdNum = $_SESSION['OrderNum'];
-		$Salesperson = 'JUSTIN';
+		$Salesperson = $_SESSION['salesperson'];
 		
 		$_SESSION['CustID'] = $_POST['customer'];
 		$CustID = $_SESSION['CustID'];
@@ -529,8 +549,11 @@ if(isset($_POST['submit'])){
 		$_SESSION['GoodID'] = $_POST['product'];
 		$Product = $_SESSION['GoodID'];
 		
+		$beforeQty = $_SESSION['Quantity'];
+		//echo $beforeQty;
 		$_SESSION['Quantity'] = $_POST['quantity'];
 		$quantity = $_SESSION['Quantity'];
+		//echo $quantity;
 		
 		$getOrder2 = "SELECT G.GoodID, G.SupplierCode, G.VendorCode, G.StyleName, G.TileSize, G.Color, G.Lot, O.Quantity FROM orderitems O, goods G WHERE O.OrderNum = '$OrdNum' AND G.GoodID = O.ItemID";
 		mysqli_query($db, $getOrder2) or die('Error querying database.');
@@ -552,24 +575,75 @@ if(isset($_POST['submit'])){
 					echo "You must specify a quantity!";
 				}
 				else{
-					if($_SESSION['editSubmit'] == 1){
-						$updateOrder = "UPDATE IGNORE orderitems SET ItemID='$Product' , Quantity= '$quantity'";
-						mysqli_query($db, $updateOrder) or die('Error querying database.');
-						updateOrderTable($getOrder2);
+					if($_SESSION['editSubmit'] == 1){		
+					
+						//CHANGE INVENTORY AMOUNT
+						$getGoodAmt = "SELECT Amount FROM goods WHERE GoodID = '$Product'";
+						$result = mysqli_query($db, $getGoodAmt) or die('Error querying database.');
+						$row = mysqli_fetch_array($result);
+						$_SESSION['GoodQty'] = $row['Amount'];
+						
+						
+						if($beforeQty >= $quantity){
+							$add = $beforeQty - $quantity;
+							$diffAmount = $_SESSION['GoodQty'] + $add;
+							//echo $diffAmount;
+							$changeAmt = "UPDATE IGNORE goods SET Amount='$diffAmount' WHERE GoodID = '$Product'";
+							mysqli_query($db, $changeAmt) or die('Error querying database.');
+							
+							//UPDATE ORDER
+							$updateOrder = "UPDATE IGNORE orderitems SET ItemID='$Product' , Quantity= '$quantity'";
+							mysqli_query($db, $updateOrder) or die('Error querying database.');
+							updateOrderTable($getOrder2);
+						}
+						else{
+							if($_SESSION['GoodQty'] >= $quantity){
+								$sub = $quantity - $beforeQty;
+								$diffAmount = $_SESSION['GoodQty'] - $sub;
+								//echo $diffAmount;
+								$changeAmt = "UPDATE IGNORE goods SET Amount='$diffAmount' WHERE GoodID = '$Product'";
+								mysqli_query($db, $changeAmt) or die('Error querying database.');
+								
+								//UPDATE ORDER
+								$updateOrder = "UPDATE IGNORE orderitems SET ItemID='$Product' , Quantity= '$quantity'";
+								mysqli_query($db, $updateOrder) or die('Error querying database.');
+								updateOrderTable($getOrder2);
+							}
+							else{
+								echo "There is not enough product in inventory to make this change!";
+								updateOrderTable($getOrder2);
+							}
+						}
+						//END CHANGE 
+						
 						$_SESSION['GoodID'] = '';
 						$_SESSION['Quantity'] = '';
 						$_SESSION['editSubmit'] = 0;
 					}
 					else{
-						$insertProduct = "INSERT IGNORE INTO orderitems (OrderNum, ItemID, Quantity)
-						VALUES ('$OrdNum','$Product','$quantity')";
-						mysqli_query($db, $insertProduct) or die('Error querying database.');
-						updateOrderTable($getOrder2);
-						$_SESSION['GoodID'] = '';
-						$_SESSION['Quantity'] = '';
+						//CHANGE INVENTORY AMOUNT
+						$getGoodAmt = "SELECT Amount FROM goods WHERE GoodID = '$Product'";
+						$result = mysqli_query($db, $getGoodAmt) or die('Error querying database.');
+						$row = mysqli_fetch_array($result);
+						$_SESSION['GoodQty'] = $row['Amount'];
+						if($_SESSION['GoodQty'] >= $quantity){
+							$insertProduct = "INSERT IGNORE INTO orderitems (OrderNum, ItemID, Quantity)
+							VALUES ('$OrdNum','$Product','$quantity')";
+							mysqli_query($db, $insertProduct) or die('Error querying database.');
+							updateOrderTable($getOrder2);
+							$_SESSION['GoodID'] = '';
+							$_SESSION['Quantity'] = '';
+							$_SESSION['haveProd'] = 0;
+						}
+						else{
+							echo "There is not enough product in inventory to make this change!";
+							updateOrderTable($getOrder2);
+							$_SESSION['haveProd'] = 1;
+						}
+
 					}
 				}
-				$_SESSION['haveProd'] = 0;
+				
 			}
 		}
 	}

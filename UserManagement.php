@@ -267,11 +267,21 @@ if(isset($_POST['edit'])){
       Security Level:<br>
       <input type="text" list = "sectypes" name="security" size="14" value= "<?php echo $Security;?>">
 	  <datalist id = "sectypes">
-		<option value = "Administrator" />
-		<option value = "Owner" />
-		<option value = "Manager" />
-		<option value = "Salesperson" />
-		<option value = "Warehouse" />
+<?php
+	if($mySec == 'Administrator' || $mySec == 'Owner'){
+		echo "<option value = 'Administrator' />";
+		echo "<option value = 'Owner' />";
+		echo "<option value = 'Manager' />";
+		echo "<option value = 'Salesperson' />";
+		echo "<option value = 'Warehouse' />";
+	}
+	elseif($mySec == 'Salesperson'){
+		echo "<option value = 'Salesperson' />";
+	}
+	elseif($mySec == 'Manager'){
+		echo "<option value = 'Manager' />";
+	}
+?>
 	  </datalist>
       <br>
 	  <br><br>
