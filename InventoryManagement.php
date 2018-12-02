@@ -34,7 +34,7 @@
 
   .topnavigation a {
     float: left;
-    color: #FFFF00;
+    color: white;
     text-align: center;
     padding: 14px 16px;
     text-decoration: none;
@@ -42,19 +42,19 @@
   }
 
   .topnavigation a:hover {
-    background-color: #FF00C1;
+    background-color: #F43386;
     color: white;
   }
 
   .topnavigation a.active {
-    background-color: #173365;
+    background-color: #404F6B;
     color: white;
   }
 
 				table {
 					font-family: arial, sans-serif;
 					border-collapse: collapse;
-					width: 90.9%;
+					width: auto;
 					float: right;
 					margin: -590px -58px;
           color: black;
@@ -66,7 +66,7 @@
 					height: 20px;
 					text-align: center;
 				    background: #FF00C1;
-					color: #ddd;
+					color: white;
 				}
 
 				tbody {
@@ -152,14 +152,28 @@
 <body>
   <div class="topnavigation">
   <a href="index.php">Log Out</a>
-  <a href="OrderEntry.php">Order Entry</a>
-  <a href="ProductSearch.php">Product Search</a>
-  <a class="active" href="InventoryManagement.php">Inventory Management</a>
-  <a href="CustomerManagement.php">Customer Management</a>
+<?php
+	session_start(); 
+
+	$mySec = $_SESSION['secLevel'];
+	
+	if($mySec == 'Administrator' || $mySec == 'Owner'){
+		echo "<a href='OrderEntry.php'>Order Entry</a>";
+		echo "<a href='ProductSearch.php'>Product Search</a>";
+		echo "<a class='active' href='InventoryManagement.php'>Inventory Management</a>";
+		echo "<a href='CustomerManagement.php'>Customer Management</a>";
+		echo "<a href='UserManagement.php'>User Management</a>";
+	}
+	elseif($mySec == 'Manager'){
+		echo "<a href='ProductSearch.php'>Product Search</a>";
+		echo "<a class='active' href='InventoryManagement.php'>Inventory Management</a>";
+		echo "<a href='UserManagement.php'>User Management</a>";
+	}
+?>
 </div>
 
 <?php
-$db = mysqli_connect('localhost:8889', 'root', 'root', 'wims')or die('Error connecting to MySQL server');
+$db = mysqli_connect('localhost', 'root', '', 'wims')or die('Error connecting to MySQL server');
 
 $Sku = '';
 $Vendor = '';
@@ -174,7 +188,6 @@ $Price = '';
 $editActive = 0;
 $error = 0;
 
-session_start();
 if(!isset($_SESSION['editSubmit']))
 {
     $_SESSION['editSubmit'] = 0;
@@ -280,7 +293,7 @@ if(isset($_POST['edit'])){
 
 </div>
 </section>
-</div>
+
 		<div class="divtable">
 			<table>
 			<?php
@@ -308,7 +321,7 @@ if(isset($_POST['edit'])){
 					echo "<th style='overflow:hidden;width:80px;'>Location</th>";
 					echo "<th style='overflow:hidden;width:60px;'>Amount</th>";
 					echo "<th style='overflow:hidden;width:60px;'>Price</th>";
-					echo "<th style='overflow:hidden;width:67px;'>Select</th>";
+					echo "<th style='overflow:hidden;width:82px;'>Select</th>";
 					echo "</tr>";
 					echo "</thead>";
 
@@ -327,10 +340,10 @@ if(isset($_POST['edit'])){
 						echo "<td style='overflow:hidden;width:60px;'>" . $row['Amount'] . "</td>";
 						echo "<td style='overflow:hidden;width:60px;'>" . $row['UnitPrice'] . "</td>";
 						if($active == 1){
-							echo "<td style='overflow:hidden;width:50px;'><center><input type='checkbox' name='formCheck[]' value='" . $row['GoodID'] . "' checked/></center></td>";
+							echo "<td style='overflow:hidden;width:60px;'><center><input type='checkbox' name='formCheck[]' value='" . $row['GoodID'] . "' checked/></center></td>";
 						}
 						else{
-							echo "<td style='overflow:hidden;width:50px;'><center><input type='checkbox' name='formCheck[]' value='" . $row['GoodID'] . "'/></center></td>";
+							echo "<td style='overflow:hidden;width:65px;'><center><input type='checkbox' name='formCheck[]' value='" . $row['GoodID'] . "'/></center></td>";
 						}
 						echo "</tr>";
 						$GLOBALS['rownumber'] = $GLOBALS['rownumber'] + 1;
@@ -449,8 +462,8 @@ if(isset($_POST['edit'])){
 				mysqli_close($db);
 			?>
 			</table>
-				<input type="submit" name="edit" value="Edit" style="color:green; float: right; margin: -120px 600px;"/>
-				<input type="submit" name="delete" value="Delete" style="color:red; float: right; margin: -120px 300px;"/>
+				<input type="submit" name="edit" value="Edit" style="color:#173365;; float: right; margin: -120px 600px;"/>
+				<input type="submit" name="delete" value="Delete" style="color:#FF00C1;; float: right; margin: -120px 300px;"/>
 			</form>
 </body>
 </html>
