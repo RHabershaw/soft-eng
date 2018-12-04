@@ -601,6 +601,7 @@ if(isset($_POST['submit'])){
 								$sub = $quantity - $beforeQty;
 								$diffAmount = $_SESSION['GoodQty'] - $sub;
 								//echo $diffAmount;
+								
 								$changeAmt = "UPDATE IGNORE goods SET Amount='$diffAmount' WHERE GoodID = '$Product'";
 								mysqli_query($db, $changeAmt) or die('Error querying database.');
 								
@@ -626,10 +627,17 @@ if(isset($_POST['submit'])){
 						$result = mysqli_query($db, $getGoodAmt) or die('Error querying database.');
 						$row = mysqli_fetch_array($result);
 						$_SESSION['GoodQty'] = $row['Amount'];
+						
 						if($_SESSION['GoodQty'] >= $quantity){
 							$insertProduct = "INSERT IGNORE INTO orderitems (OrderNum, ItemID, Quantity)
 							VALUES ('$OrdNum','$Product','$quantity')";
 							mysqli_query($db, $insertProduct) or die('Error querying database.');
+							
+							//UPDATE AMOUNT
+							$diffAmount = $_SESSION['GoodQty'] - $quantity;
+							$changeAmt = "UPDATE IGNORE goods SET Amount='$diffAmount' WHERE GoodID = '$Product'";
+							mysqli_query($db, $changeAmt) or die('Error querying database.');
+							
 							updateOrderTable($getOrder2);
 							$_SESSION['GoodID'] = '';
 							$_SESSION['Quantity'] = '';
@@ -697,6 +705,24 @@ if(isset($_POST['delete'])){
 			for($i=0; $i < $N; $i++)
 			{
 				//echo($aRecord[$i] . " ");
+				
+				//CHANGE INVENTORY AMOUNT
+				$getGoodAmt = "SELECT Amount FROM goods WHERE GoodID = '$aRecord[$i]'";
+				$result = mysqli_query($db, $getGoodAmt) or die('Error querying database.');
+				$row = mysqli_fetch_array($result);
+				$_SESSION['GoodQty'] = $row['Amount'];
+				
+				//GET ORDER QUANTITIY
+				$getOrderAmt = "SELECT Quantity FROM orderitems WHERE ItemID = '$aRecord[$i]'";
+				$result = mysqli_query($db, $getOrderAmt) or die('Error querying database.');
+				$row = mysqli_fetch_array($result);
+				$quantity = $row['Quantity'];
+				
+				//UPDATE AMOUNT
+				$diffAmount = $_SESSION['GoodQty'] + $quantity;
+				$changeAmt = "UPDATE IGNORE goods SET Amount='$diffAmount' WHERE GoodID = '$aRecord[$i]'";
+				mysqli_query($db, $changeAmt) or die('Error querying database.');
+				
 				$delete = "DELETE FROM orderitems WHERE ItemID = '$aRecord[$i]'";
 				mysqli_query($db, $delete) or die('Error querying database.');
 			}
